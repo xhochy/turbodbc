@@ -89,16 +89,16 @@ class ArrowResultSetTest : public ::testing::Test {
 
         template <typename ArrayType>
         std::shared_ptr<arrow::Array> MakePrimitive(int64_t length, int64_t null_count = 0) {
-            auto data = std::make_shared<arrow::PoolBuffer>(pool);
+            std::shared_ptr<arrow::ResizableBuffer> data;
             const int64_t data_nbytes = length * sizeof(typename ArrayType::value_type);
-            EXPECT_OK(data->Resize(data_nbytes));
+            EXPECT_OK(AllocateResizableBuffer(pool, data_nbytes, &data));
 
             // Fill with random data
-            arrow::test::random_bytes(data_nbytes, 0 /*random_seed*/, data->mutable_data());
+            arrow::random_bytes(data_nbytes, 0 /*random_seed*/, data->mutable_data());
 
-            auto null_bitmap = std::make_shared<arrow::PoolBuffer>(pool);
+            std::shared_ptr<arrow::ResizableBuffer> null_bitmap;
             const int64_t null_nbytes = arrow::BitUtil::BytesForBits(length);
-            EXPECT_OK(null_bitmap->Resize(null_nbytes));
+            EXPECT_OK(AllocateResizableBuffer(pool, null_nbytes, &null_bitmap));
             memset(null_bitmap->mutable_data(), 255, null_nbytes);
             for (int64_t i = 0; i < null_count; i++) {
                 arrow::BitUtil::ClearBit(null_bitmap->mutable_data(), i * (length / null_count));

@@ -216,8 +216,8 @@ setup(name = 'turbodbc',
       packages = ['turbodbc'],
       extras_require={
           # We pin Apache Arrow quite restrictively until they guarantee a stable API
-          'arrow': ['pyarrow>=0.8'],
-          'numpy': 'numpy>=1.10.4'
+          'arrow': ['pyarrow>=0.11,<0.12'],
+          'numpy': 'numpy>=1.14'
       },
       classifiers = ['Development Status :: 5 - Production/Stable',
                      'Intended Audience :: Developers',
@@ -227,9 +227,9 @@ setup(name = 'turbodbc',
                      'Operating System :: Microsoft :: Windows',
                      'Programming Language :: C++',
                      'Programming Language :: Python :: 2.7',
-                     'Programming Language :: Python :: 3.4',
                      'Programming Language :: Python :: 3.5',
                      'Programming Language :: Python :: 3.6',
+                     'Programming Language :: Python :: 3.7',
                      'Programming Language :: Python :: Implementation :: CPython',
                      'Topic :: Database'],
       ext_modules = get_extension_modules(),

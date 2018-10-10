@@ -26,12 +26,6 @@ matrix:
     - ODBC_DIR=odbc
   - os: linux
     language: python
-    python: "3.4"
-    env:
-    - TURBODBC_TEST_CONFIGURATION_FILES="query_fixtures_postgresql.json,query_fixtures_mysql.json"
-    - ODBC_DIR=odbc
-  - os: linux
-    language: python
     python: "3.5"
     env:
     - TURBODBC_TEST_CONFIGURATION_FILES="query_fixtures_postgresql.json,query_fixtures_mysql.json"
@@ -39,6 +33,12 @@ matrix:
   - os: linux
     language: python
     python: "3.6"
+    env:
+    - TURBODBC_TEST_CONFIGURATION_FILES="query_fixtures_postgresql.json,query_fixtures_mysql.json"
+    - ODBC_DIR=odbc
+  - os: linux
+    language: python
+    python: "3.7"
     env:
     - TURBODBC_TEST_CONFIGURATION_FILES="query_fixtures_postgresql.json,query_fixtures_mysql.json"
     - ODBC_DIR=odbc
@@ -83,7 +83,7 @@ before_install: |
   fi
 
 install:
-  - pip install numpy==1.10.4 pyarrow==0.8.0 six twine pytest-cov coveralls pandas
+  - pip install numpy==1.14.5 pyarrow==0.11.0 six twine pytest-cov coveralls pandas
 
 before_script: |
   if [ "$TRAVIS_OS_NAME" == "linux" ]; then
@@ -95,7 +95,7 @@ script:
   - mkdir build && cd build
   - cmake -DBUILD_COVERAGE=ON -DCMAKE_INSTALL_PREFIX=./dist -DPYBIND11_PYTHON_VERSION=${TRAVIS_PYTHON_VERSION} ..
   - make -j4
-  - pip install numpy==1.10.4
+  - pip install numpy==1.14.5
   - |
       if [ "$TRAVIS_OS_NAME" == "osx" ]; then
         ctest -E turbodbc_arrow_unit_test --verbose

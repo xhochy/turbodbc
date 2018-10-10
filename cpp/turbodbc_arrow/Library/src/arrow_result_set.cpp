@@ -75,7 +75,7 @@ template <typename BuilderType>
 Status AppendIntsToBuilder(size_t rows_in_batch, std::unique_ptr<ArrayBuilder> const& builder, cpp_odbc::multi_value_buffer const& input_buffer, uint8_t* valid_bytes) {
     auto typed_builder = static_cast<BuilderType*>(builder.get());
     auto data_ptr = reinterpret_cast<const int64_t*>(input_buffer.data_pointer());
-    return typed_builder->Append(data_ptr, rows_in_batch, valid_bytes);
+    return typed_builder->AppendValues(data_ptr, rows_in_batch, valid_bytes);
 }
 
 }
@@ -117,7 +117,7 @@ std::shared_ptr<arrow::Schema> arrow_result_set::schema()
 Status append_to_double_builder(size_t rows_in_batch, std::unique_ptr<ArrayBuilder> const& builder, cpp_odbc::multi_value_buffer const& input_buffer, uint8_t* valid_bytes) {
     auto typed_builder = static_cast<DoubleBuilder*>(builder.get());
     auto data_ptr = reinterpret_cast<const double*>(input_buffer.data_pointer());
-    return typed_builder->Append(data_ptr, rows_in_batch, valid_bytes);
+    return typed_builder->AppendValues(data_ptr, rows_in_batch, valid_bytes);
 }
 
 Status append_to_int_builder(size_t rows_in_batch, std::unique_ptr<ArrayBuilder> const& builder, cpp_odbc::multi_value_buffer const& input_buffer, uint8_t* valid_bytes, bool adaptive_integers) {
@@ -131,7 +131,7 @@ Status append_to_int_builder(size_t rows_in_batch, std::unique_ptr<ArrayBuilder>
 Status append_to_bool_builder(size_t rows_in_batch, std::unique_ptr<ArrayBuilder> const& builder, cpp_odbc::multi_value_buffer const& input_buffer, uint8_t* valid_bytes) {
     auto typed_builder = static_cast<BooleanBuilder*>(builder.get());
     auto data_ptr = reinterpret_cast<const uint8_t*>(input_buffer.data_pointer());
-    return typed_builder->Append(data_ptr, rows_in_batch, valid_bytes);
+    return typed_builder->AppendValues(data_ptr, rows_in_batch, valid_bytes);
 }
 
 Status append_to_timestamp_builder(size_t rows_in_batch, std::unique_ptr<ArrayBuilder> const& builder, cpp_odbc::multi_value_buffer const& input_buffer, uint8_t*) {
