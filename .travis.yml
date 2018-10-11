@@ -60,7 +60,7 @@ addons:
       - libboost-locale-dev
       - libboost-system-dev
       - libmyodbc
-      - odbc-postgresql=1:09.02.0100-2ubuntu1
+      - odbc-postgresql
 
 before_install: |
   if [ "$TRAVIS_OS_NAME" == "osx" ]; then
