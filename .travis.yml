@@ -37,6 +37,9 @@ matrix:
     - TURBODBC_TEST_CONFIGURATION_FILES="query_fixtures_postgresql.json,query_fixtures_mysql.json"
     - ODBC_DIR=odbc
   - os: linux
+    # Python 3.7 is only available on newer Ubuntu versions. We keep the old versions globally
+    # to ensure that turbodbc also works with older compilers.
+    dist: xenial
     language: python
     python: "3.7"
     env:
