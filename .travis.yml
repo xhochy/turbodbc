@@ -60,6 +60,8 @@ addons:
       - libboost-locale-dev
       - libboost-system-dev
       - odbc-postgresql
+      - odbcinst1debian2
+      - libssl1.0.0
 
 before_install: |
   if [ "$TRAVIS_OS_NAME" == "osx" ]; then
@@ -91,18 +93,27 @@ before_script: |
   if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     wget https://downloads.mariadb.com/Connectors/odbc/connector-odbc-3.0.6/mariadb-connector-odbc-3.0.6-ga-debian-x86_64.tar.gz -O /tmp/mariadb.tar.gz
     pushd /usr
-    tar xf /tmp/mariadb.tar.gz
+    sudo tar xvf /tmp/mariadb.tar.gz
     popd
+    ls -l /usr/lib/libmaodbc.so
+    ldd /usr/lib/libmaodbc.so
+    LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH ldd /usr/lib/libmaodbc.so
     $TRAVIS_BUILD_DIR/travis/setup_test_dbs.sh
   fi
 
 script:
   - export ODBCSYSINI=${PWD}/travis/${ODBC_DIR}
   - mkdir build && cd build
-  - cmake -DBUILD_COVERAGE=ON -DCMAKE_INSTALL_PREFIX=./dist -DPYBIND11_PYTHON_VERSION=${TRAVIS_PYTHON_VERSION} ..
-  - make -j4
+  - |
+      if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+        cmake -DBUILD_COVERAGE=ON -DCMAKE_INSTALL_PREFIX=./dist -DPYBIND11_PYTHON_VERSION=${TRAVIS_PYTHON_VERSION} -DDISABLE_CXX11_ABI=ON ..
+      else
+        cmake -DBUILD_COVERAGE=ON -DCMAKE_INSTALL_PREFIX=./dist -DPYBIND11_PYTHON_VERSION=${TRAVIS_PYTHON_VERSION} ..
+      fi
+  - make -j4 VERBOSE=1
   - pip install numpy==1.14.5
   - |
+      export LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
       if [ "$TRAVIS_OS_NAME" == "osx" ]; then
         ctest -E turbodbc_arrow_unit_test --verbose
       else
