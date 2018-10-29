@@ -19,7 +19,7 @@ other popular ODBC modules do.
 
 Turbodbc is free to use (`MIT license <https://github.com/blue-yonder/turbodbc/blob/master/LICENSE>`_),
 open source (`GitHub <https://github.com/blue-yonder/turbodbc>`_),
-works with Python 2.7 and Python 3.4+, and is available for Linux, OSX, and Windows.
+works with Python 2.7 and Python 3.5+, and is available for Linux, OSX, and Windows.
 
 Turbodbc is routinely tested with `MySQL <https://www.mysql.com>`_,
 `PostgreSQL <https://www.postgresql.org>`_, `EXASOL <http://www.exasol.com>`_,
