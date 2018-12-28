@@ -79,7 +79,7 @@ do the following:
      ::
 
         conda create -y -q -n turbodbc-dev pyarrow numpy pybind11 boost-cpp \
-            pytest pytest-cov mock cmake -c conda-forge
+            pytest pytest-cov mock cmake unixodbc -c conda-forge
         source activate turbodbc-dev
 
 #.  Clone turbodbc into the virtual environment somewhere:
