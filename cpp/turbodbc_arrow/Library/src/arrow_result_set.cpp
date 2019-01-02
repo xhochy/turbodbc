@@ -12,6 +12,7 @@
 #include <turbodbc/time_helpers.h>
 
 #include <ciso646>
+#include <codecvt>
 #include <vector>
 
 using arrow::default_memory_pool;
@@ -49,6 +50,12 @@ std::unique_ptr<ArrayBuilder> make_array_builder(turbodbc::type_code type, bool 
             return std::unique_ptr<TimestampBuilder>(new TimestampBuilder(arrow::timestamp(TimeUnit::MICRO), ::arrow::default_memory_pool()));
         case turbodbc::type_code::date:
             return std::unique_ptr<Date32Builder>(new Date32Builder());
+        case turbodbc::type_code::unicode:
+            if (strings_as_dictionary) {
+                return std::unique_ptr<StringDictionaryBuilder>(new StringDictionaryBuilder(::arrow::utf8(), ::arrow::default_memory_pool()));
+            } else {
+                return std::unique_ptr<StringBuilder>(new StringBuilder());
+            }
         default:
             if (strings_as_dictionary) {
                 return std::unique_ptr<StringDictionaryBuilder>(new StringDictionaryBuilder(::arrow::utf8(), ::arrow::default_memory_pool()));
@@ -66,6 +73,21 @@ Status AppendStringsToBuilder(size_t rows_in_batch, BuilderType& builder, cpp_od
             ARROW_RETURN_NOT_OK(builder.AppendNull());
         } else {
             ARROW_RETURN_NOT_OK(builder.Append(element.data_pointer, element.indicator));
+        }
+    }
+    return Status::OK();
+}
+
+template <typename BuilderType>
+Status AppendUnicodeStringsToBuilder(size_t rows_in_batch, BuilderType& builder, cpp_odbc::multi_value_buffer const& input_buffer) {
+    for (std::size_t j = 0; j != rows_in_batch; ++j) {
+        auto const element = input_buffer[j];
+        if (element.indicator == SQL_NULL_DATA) {
+            ARROW_RETURN_NOT_OK(builder.AppendNull());
+        } else {
+            std::u16string str_u16(reinterpret_cast<const char16_t*>(element.data_pointer), element.indicator / 2);
+            std::string u8string = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(str_u16);;
+            ARROW_RETURN_NOT_OK(builder.Append(u8string));
         }
     }
     return Status::OK();
@@ -171,6 +193,17 @@ Status append_to_string_builder(size_t rows_in_batch, std::unique_ptr<ArrayBuild
 }
 
 
+Status append_to_unicode_builder(size_t rows_in_batch, std::unique_ptr<ArrayBuilder> const& builder, cpp_odbc::multi_value_buffer const& input_buffer, uint8_t*, bool strings_as_dictionary) {
+    if (strings_as_dictionary) {
+        return AppendUnicodeStringsToBuilder<StringDictionaryBuilder>(rows_in_batch,
+            static_cast<StringDictionaryBuilder&>(*builder), input_buffer);
+    }
+
+    return AppendUnicodeStringsToBuilder<StringBuilder>(rows_in_batch,
+        static_cast<StringBuilder&>(*builder), input_buffer);
+}
+
+
 Status arrow_result_set::process_batch(size_t rows_in_batch, std::vector<std::unique_ptr<ArrayBuilder>> const& columns) {
     // TODO: Use a PoolBuffer for this and only allocate it once
     auto const column_info = base_result_.get_column_info();
@@ -202,6 +235,9 @@ Status arrow_result_set::process_batch(size_t rows_in_batch, std::vector<std::un
                 break;
             case turbodbc::type_code::date:
                 ARROW_RETURN_NOT_OK(append_to_date_builder(rows_in_batch, columns[i], buffers[i].get(), valid_bytes.data()));
+                break;
+            case turbodbc::type_code::unicode:
+                ARROW_RETURN_NOT_OK(append_to_unicode_builder(rows_in_batch, columns[i], buffers[i].get(), valid_bytes.data(), strings_as_dictionary_));
                 break;
             default:
                 // Strings are the only remaining type

@@ -220,7 +220,7 @@ def test_arrow_timelike_column_larger_than_batch_size(dsn, configuration):
 @pytest.mark.parametrize("strings_as_dictionary", [True, False])
 def test_arrow_string_column(dsn, configuration, strings_as_dictionary):
     with open_cursor(configuration) as cursor:
-        with query_fixture(cursor, configuration, 'INSERT STRING') as table_name:
+        with query_fixture(cursor, configuration, 'INSERT UNICODE') as table_name:
             cursor.execute('INSERT INTO {} VALUES (?)'.format(table_name), [u'unicode \u2665'])
             cursor.execute('SELECT a FROM {}'.format(table_name))
             result = cursor.fetchallarrow(strings_as_dictionary=strings_as_dictionary)
