@@ -38,6 +38,6 @@ if (WIN32)
     set_tests_properties(
         turbodbc_arrow_unit_test
         PROPERTIES
-        ENVIRONMENT "PATH=${CMAKE_BINARY_DIR};$ENV{PATH}"
+        ENVIRONMENT "PATH=${CMAKE_BINARY_DIR};$ENV{PATH};${ARROW_LIB_PATH}"
     )
 endif()
