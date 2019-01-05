@@ -174,14 +174,14 @@ def test_arrow_timestamp_column(dsn, configuration):
 @for_each_database
 @pyarrow
 def test_arrow_date_column(dsn, configuration):
-    date = datetime.date(3999, 12, 31)
+    date = datetime.date(2015, 12, 31)
 
     with open_cursor(configuration) as cursor:
         with query_fixture(cursor, configuration, 'INSERT DATE') as table_name:
             cursor.execute('INSERT INTO {} VALUES (?)'.format(table_name), [date])
             cursor.execute('SELECT a FROM {}'.format(table_name))
             result = cursor.fetchallarrow()
-            result.column(0).to_pylist() == [datetime.date(3999, 12, 31)]
+            result.column(0).to_pylist() == [datetime.date(2015, 12, 31)]
 
 
 @for_each_database
