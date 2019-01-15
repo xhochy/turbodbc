@@ -1,14 +1,17 @@
 dist: trusty
 sudo: required
 
+services:
+  - docker
+
 matrix:
   include:
   - os: osx
-    osx_image: xcode6.4
+    osx_image: xcode9.4
     language: generic
     env:
     - TRAVIS_PYTHON_VERSION="2.7.12"
-    - TURBODBC_TEST_CONFIGURATION_FILES="query_fixtures_postgresql.json"
+    - TURBODBC_TEST_CONFIGURATION_FILES="query_fixtures_postgresql.json,query_fixtures_mysql.json"
     - ODBC_DIR=odbc_osx
 #  Disable for now until a workaround for the detection of pyenv versions by pybind11
 #  is found
@@ -22,7 +25,7 @@ matrix:
     language: python
     python: "2.7"
     env:
-    - TURBODBC_TEST_CONFIGURATION_FILES="query_fixtures_postgresql.json,query_fixtures_mysql.json"
+    - TURBODBC_TEST_CONFIGURATION_FILES="query_fixtures_postgresql.json,query_fixtures_mysql.json,query_fixtures_mssql.json"
     - ODBC_DIR=odbc
   - os: linux
     language: python
@@ -52,6 +55,8 @@ addons:
       - libboost-system-dev
       - libmyodbc
       - odbc-postgresql=1:09.02.0100-2ubuntu1
+      - tdsodbc
+      - odbcinst1debian2
 
 before_install: |
   if [ "$TRAVIS_OS_NAME" == "osx" ]; then
@@ -81,6 +86,16 @@ install:
 
 before_script: |
   if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+    docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=StrongPassword1' -p 1433:1433 --name mssql1 -d mcr.microsoft.com/mssql/server:2017-latest
+    # Wait until MS SQL is started
+    sudo bash -c 'curl https://packages.microsoft.com/config/ubuntu/14.04/prod.list > /etc/apt/sources.list.d/mssql-release.list'
+    sudo bash -c 'curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -'
+    sudo apt-get update
+    sudo ACCEPT_EULA=Y apt-get install msodbcsql17 unixodbc-dev
+    dpkg -L msodbcsql17
+
+    sleep 20
+    docker exec -it mssql1 /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'StrongPassword1' -Q 'CREATE DATABASE test_db'
     $TRAVIS_BUILD_DIR/travis/setup_test_dbs.sh
   fi
 
